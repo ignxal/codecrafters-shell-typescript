@@ -1,6 +1,6 @@
 import { createInterface } from "readline";
-import * as fs from "fs/promises";
-import { constants } from "fs";
+import { checkPathExistence } from "./utils/path";
+import { extractContent } from "./utils/parser";
 
 const BUILTIN_COMMANDS = ["exit", "echo", "type"];
 
@@ -53,31 +53,6 @@ async function type(input: string): Promise<void> {
   }
 
   return console.log(`${content}: not found`);
-}
-
-async function checkPathExistence(
-  pathEnv: string,
-  filename: string
-): Promise<string | null> {
-  if (!pathEnv) return null;
-
-  const paths = pathEnv.split(":");
-
-  for (const p of paths) {
-    const fullPath = p.endsWith("/") ? `${p}${filename}` : `${p}/${filename}`;
-    try {
-      await fs.access(fullPath, constants.F_OK | constants.X_OK);
-      return fullPath;
-    } catch {
-      continue;
-    }
-  }
-
-  return null;
-}
-
-function extractContent(command: string, prefix: string): string {
-  return command.split(prefix)[1];
 }
 
 function main() {
