@@ -7,25 +7,35 @@ const rl = createInterface({
 
 function askQuestion() {
   rl.question("$ ", (answer) => {
-    if (answer === "exit") {
-      rl.close();
-      return;
-    }
-
-    if (answer.startsWith("echo ")) {
-      const echoContent = answer.slice(5);
-      echo(echoContent);
-      askQuestion();
-      return;
-    }
-
-    console.log(`${answer}: command not found`);
-    askQuestion();
+    const askAgain = handleAnswer(answer);
+    if (askAgain) askQuestion();
   });
 }
 
-function echo(input: string): void {
-  return console.log(input);
+function handleAnswer(answer: string): boolean {
+  if (answer === "exit") {
+    exit();
+    return false;
+  } else if (answer.startsWith("echo ")) {
+    const echoContent = answer.slice(5);
+    echo(echoContent);
+  } else {
+    console.log(`${answer}: command not found`);
+  }
+
+  return true;
 }
 
-askQuestion();
+function exit(): void {
+  rl.close();
+}
+
+function echo(input: string): void {
+  console.log(input);
+}
+
+function main() {
+  askQuestion();
+}
+
+main();
