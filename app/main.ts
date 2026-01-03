@@ -9,21 +9,21 @@ const rl = createInterface({
   output: process.stdout,
 });
 
-function askQuestion() {
-  rl.question("$ ", (answer) => {
-    const askAgain = handleAnswer(answer);
+async function askQuestion() {
+  rl.question("$ ", async (answer) => {
+    const askAgain = await handleAnswer(answer);
     if (askAgain) askQuestion();
   });
 }
 
-function handleAnswer(answer: string): boolean {
+async function handleAnswer(answer: string): Promise<boolean> {
   if (answer === "exit") {
     exit();
     return false;
   } else if (answer.startsWith("echo ")) {
     echo(answer);
   } else if (answer.startsWith("type ")) {
-    type(answer);
+    await type(answer);
   } else {
     console.log(`${answer}: command not found`);
   }
