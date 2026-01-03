@@ -48,22 +48,26 @@ async function type(input: string): Promise<void> {
   }
 
   if (process.env.PATH) {
-    const path = await checkPathExistence(process.env.PATH);
+    const path = await checkPathExistence(process.env.PATH, content);
     if (path) return console.log(`${content} is ${path}`);
   }
 
   return console.log(`${content}: not found`);
 }
 
-async function checkPathExistence(path: string): Promise<string | null> {
-  if (!path) return null;
+async function checkPathExistence(
+  pathEnv: string,
+  filename: string
+): Promise<string | null> {
+  if (!pathEnv) return null;
 
-  const paths = path.split(":");
+  const paths = pathEnv.split(":");
 
   for (const p of paths) {
+    const fullPath = p.endsWith("/") ? `${p}${filename}` : `${p}/${filename}`;
     try {
-      await fs.access(p, constants.F_OK | constants.X_OK);
-      return p;
+      await fs.access(fullPath, constants.F_OK | constants.X_OK);
+      return fullPath;
     } catch {
       continue;
     }
