@@ -12,8 +12,20 @@ function askQuestion() {
       return;
     }
 
+    if (answer.startsWith("echo ")) {
+      const echoContent = answer.slice(5);
+      echo(echoContent);
+      askQuestion();
+      return;
+    }
+
     console.log(`${answer}: command not found`);
     askQuestion();
   });
 }
+
+function echo(input: string): void {
+  return console.log(input);
+}
+
 askQuestion();
