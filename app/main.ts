@@ -62,7 +62,7 @@ async function checkPathExistence(path: string): Promise<string | null> {
 
   for (const p of paths) {
     try {
-      await fs.access(p, constants.F_OK);
+      await fs.access(p, constants.F_OK | constants.X_OK);
       return p;
     } catch {
       continue;
