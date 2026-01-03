@@ -1,4 +1,6 @@
 import { createInterface } from "readline";
+import * as fs from "fs/promises";
+import { constants } from "fs";
 
 const BUILTIN_COMMANDS = ["exit", "echo", "type"];
 
@@ -38,13 +40,36 @@ function echo(input: string): void {
   console.log(content);
 }
 
-function type(input: string): void {
+async function type(input: string): Promise<void> {
   const content = extractContent(input, "type ");
+
   if (BUILTIN_COMMANDS.includes(content)) {
     return console.log(`${content} is a shell builtin`);
   }
 
-  console.log(`${content}: not found`);
+  if (process.env.PATH) {
+    const path = await checkPathExistence(process.env.PATH);
+    if (path) return console.log(`${content} is ${path}`);
+  }
+
+  return console.log(`${content}: not found`);
+}
+
+async function checkPathExistence(path: string): Promise<string | null> {
+  if (!path) return null;
+
+  const paths = path.split(":");
+
+  for (const p of paths) {
+    try {
+      await fs.access(p, constants.F_OK);
+      return p;
+    } catch {
+      continue;
+    }
+  }
+
+  return null;
 }
 
 function extractContent(command: string, prefix: string): string {
