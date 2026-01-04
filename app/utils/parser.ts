@@ -11,6 +11,13 @@ export function extractContent(input: string): ParsedCommand {
   let inDoubleQuote = false;
   let prevBackSlash = false;
 
+  const pushToken = () => {
+    if (token.length > 0) {
+      tokens.push(token);
+      token = "";
+    }
+  };
+
   for (let i = 0; i < input.length; i++) {
     const ch = input[i];
 
@@ -18,19 +25,20 @@ export function extractContent(input: string): ParsedCommand {
       if (ch === "'" && !inDoubleQuote) {
         inSingleQuote = !inSingleQuote;
         continue;
-      } else if (ch === '"' && !inSingleQuote) {
+      }
+
+      if (ch === '"' && !inSingleQuote) {
         inDoubleQuote = !inDoubleQuote;
         continue;
-      } else if (ch === "\\" && !inSingleQuote && !inDoubleQuote) {
+      }
+
+      if (ch === "\\" && !inSingleQuote && !inDoubleQuote) {
         prevBackSlash = true;
         continue;
       }
 
       if (!inSingleQuote && !inDoubleQuote && /\s/.test(ch)) {
-        if (token.length > 0) {
-          tokens.push(token);
-          token = "";
-        }
+        pushToken();
         continue;
       }
     }
@@ -39,7 +47,7 @@ export function extractContent(input: string): ParsedCommand {
     prevBackSlash = false;
   }
 
-  if (token.length > 0) tokens.push(token);
+  pushToken();
 
   const command = tokens[0] || "";
   const args = tokens.slice(1);
