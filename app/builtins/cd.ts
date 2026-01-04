@@ -3,7 +3,9 @@ import process from "node:process";
 
 export async function cd(args: string[]): Promise<BuiltinResult> {
   if (args.length === 0) return { exitCode: 0 };
-  const path = args[0];
+  let path = args[0];
+
+  if (path === "~") path = process.env.HOME!;
 
   try {
     process.chdir(path);
