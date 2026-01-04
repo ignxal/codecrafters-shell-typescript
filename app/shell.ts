@@ -1,4 +1,5 @@
 import { builtins } from "./builtins";
+import { executeExternal } from "./executor/executor";
 import { extractContent } from "./utils/parser";
 import * as readline from "readline";
 
@@ -42,7 +43,9 @@ export class Shell {
         return true;
       }
     } else {
-      console.log(`${input}: command not found`);
+      const result = await executeExternal(command, args);
+
+      if (result === 1) console.log(`${input}: command not found`);
     }
 
     return false;
