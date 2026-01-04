@@ -21,34 +21,42 @@ export function extractContent(input: string): ParsedCommand {
   for (let i = 0; i < input.length; i++) {
     const ch = input[i];
 
-    if (!prevBackSlash) {
-      if (ch === "'" && !inDoubleQuote) {
-        inSingleQuote = !inSingleQuote;
-        continue;
+    if (prevBackSlash) {
+      if (!inDoubleQuote) token += ch;
+      else {
+        if (ch === "\\" || ch === '"') token += ch;
+        else token += "\\" + ch;
       }
 
-      if (ch === '"' && !inSingleQuote) {
-        inDoubleQuote = !inDoubleQuote;
-        continue;
-      }
+      prevBackSlash = false;
+      continue;
+    }
 
-      if (ch === "\\" && !inSingleQuote) {
-        prevBackSlash = true;
-        continue;
-      }
+    if (ch === "'" && !inDoubleQuote) {
+      inSingleQuote = !inSingleQuote;
+      continue;
+    }
 
-      if (!inSingleQuote && !inDoubleQuote && /\s/.test(ch)) {
-        pushToken();
-        continue;
-      }
+    if (ch === '"' && !inSingleQuote) {
+      inDoubleQuote = !inDoubleQuote;
+      continue;
+    }
+
+    if (ch === "\\" && !inSingleQuote) {
+      prevBackSlash = true;
+      continue;
+    }
+
+    if (!inSingleQuote && !inDoubleQuote && /\s/.test(ch)) {
+      pushToken();
+      continue;
     }
 
     token += ch;
-    prevBackSlash = false;
   }
 
   pushToken();
-
+  //console.log(tokens);
   const command = tokens[0] || "";
   const args = tokens.slice(1);
   return { command, args };
