@@ -1,5 +1,6 @@
 import * as fs from "fs/promises";
 import { constants } from "fs";
+import * as path from "path";
 
 export async function checkPathExistence(
   pathEnv: string,
@@ -7,7 +8,7 @@ export async function checkPathExistence(
 ): Promise<string | null> {
   if (!pathEnv) return null;
 
-  const paths = pathEnv.split(":");
+  const paths = pathEnv.split(path.delimiter);
 
   for (const p of paths) {
     const fullPath = p.endsWith("/") ? `${p}${filename}` : `${p}/${filename}`;
