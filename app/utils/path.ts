@@ -1,6 +1,6 @@
 import * as fs from "fs/promises";
 import { constants } from "fs";
-import * as path from "path";
+import * as path from "node:path";
 
 export async function checkPathExistence(
   pathEnv: string,
