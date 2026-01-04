@@ -32,7 +32,7 @@ export function extractContent(input: string): ParsedCommand {
         continue;
       }
 
-      if (ch === "\\" && !inSingleQuote && !inDoubleQuote) {
+      if (ch === "\\" && !inSingleQuote) {
         prevBackSlash = true;
         continue;
       }
