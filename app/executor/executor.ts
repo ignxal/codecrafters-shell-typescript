@@ -5,10 +5,14 @@ export async function executeExternal(
   command: string,
   args: string[]
 ): Promise<number> {
-  const path = await checkPathExistence(command, "");
+  if (!process.env.PATH) {
+    return 1;
+  }
+
+  const path = await checkPathExistence(process.env.PATH, command);
 
   if (!path) {
-    return 127;
+    return 1;
   }
 
   const programArgCount = args.length + 1;
