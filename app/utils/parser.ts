@@ -11,11 +11,9 @@ export function extractContent(input: string): ParsedCommand {
 
   for (let i = 0; i < input.length; i++) {
     const ch = input[i];
-    console.log(`current ch: ${ch}`);
 
     if (ch === "'") {
       inSingleQuote = !inSingleQuote;
-      console.log(`SINGLE QUOTE ACTIVE: ${inSingleQuote}`);
       continue;
     }
 
@@ -24,7 +22,6 @@ export function extractContent(input: string): ParsedCommand {
         tokens.push(token);
         token = "";
       }
-
       continue;
     }
 
