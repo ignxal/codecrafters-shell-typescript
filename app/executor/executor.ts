@@ -25,16 +25,7 @@ export async function executeExternal(
     lines.push(`Arg #${i + 1}: ${x}`);
   });
 
-  const programSignature = args.length
-    ? `${command} ${args.join(" ")}`
-    : command;
-
-  console.log(
-    lines.join("\n") +
-      `
-
-Program Signature: ${programSignature}`
-  );
+  console.log(lines.join("\n"));
 
   const result = spawnSync(path, args, {
     stdio: "inherit",
