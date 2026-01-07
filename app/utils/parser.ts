@@ -1,4 +1,3 @@
-// ...existing code...
 interface ParsedCommand {
   command: string;
   args: string[];

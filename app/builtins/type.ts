@@ -20,6 +20,6 @@ export async function type(args: string[]): Promise<BuiltinResult> {
     }
   }
 
-  console.log(`${cmd}: not found`);
+  console.error(`${cmd}: not found`);
   return { exitCode: 1 };
 }

@@ -1,6 +1,13 @@
 import { builtins } from "./builtins";
 import { executeExternal } from "./executor/executor";
 import { extractContent } from "./utils/parser";
+import {
+  hasRedirect,
+  parseRedirect,
+  executeWithRedirect,
+} from "./executor/redirect";
+import { checkPathExistence } from "./utils/path";
+import * as fs from "fs/promises";
 import * as readline from "readline";
 
 export class Shell {
@@ -36,6 +43,63 @@ export class Shell {
 
     if (!command) return false;
 
+    if (hasRedirect(input)) {
+      const redirectInfo = await parseRedirect(command, args);
+
+      if (redirectInfo) {
+        if (builtins[redirectInfo.command]) {
+          const originalLog = console.log;
+          let output = "";
+
+          console.log = (...vals: any[]) => {
+            output += vals.map((v) => String(v)).join(" ") + "\n";
+          };
+
+          try {
+            const result = await builtins[redirectInfo.command](
+              redirectInfo.args
+            );
+
+            try {
+              await fs.writeFile(redirectInfo.outputFile, output);
+            } catch {
+              console.error(
+                `${redirectInfo.command}: ${redirectInfo.outputFile}: No such file or directory`
+              );
+              return false;
+            }
+
+            if (result.shouldExit) {
+              process.exitCode = result.exitCode;
+              return true;
+            }
+
+            return false;
+          } finally {
+            console.log = originalLog;
+          }
+        }
+
+        if (!process.env.PATH) {
+          console.error(`${redirectInfo.command}: command not found`);
+          return false;
+        }
+
+        const executablePath = await checkPathExistence(
+          process.env.PATH,
+          redirectInfo.command
+        );
+
+        if (!executablePath) {
+          console.error(`${redirectInfo.command}: command not found`);
+          return false;
+        }
+
+        await executeWithRedirect(redirectInfo, executablePath);
+        return false;
+      }
+    }
+
     if (builtins[command]) {
       const result = await builtins[command](args);
       if (result.shouldExit) {
@@ -45,7 +109,7 @@ export class Shell {
     } else {
       const result = await executeExternal(command, args);
 
-      if (result === 1) console.log(`${input}: command not found`);
+      if (result === 1) console.error(`${input}: command not found`);
     }
 
     return false;

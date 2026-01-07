@@ -11,7 +11,7 @@ export async function cd(args: string[]): Promise<BuiltinResult> {
     process.chdir(path);
     return { exitCode: 0 };
   } catch {
-    console.log(`cd: ${path}: No such file or directory`);
+    console.error(`cd: ${path}: No such file or directory`);
   }
 
   return { exitCode: 1 };
