@@ -49,11 +49,18 @@ export class Shell {
       if (redirectInfo) {
         if (builtins[redirectInfo.command]) {
           const originalLog = console.log;
+          const originalError = console.error;
           let output = "";
 
-          console.log = (...vals: any[]) => {
-            output += vals.map((v) => String(v)).join(" ") + "\n";
-          };
+          if (redirectInfo.fd === 1) {
+            console.log = (...vals: any[]) => {
+              output += vals.map((v) => String(v)).join(" ") + "\n";
+            };
+          } else if (redirectInfo.fd === 2) {
+            console.error = (...vals: any[]) => {
+              output += vals.map((v) => String(v)).join(" ") + "\n";
+            };
+          }
 
           try {
             const result = await builtins[redirectInfo.command](
@@ -63,7 +70,7 @@ export class Shell {
             try {
               await fs.writeFile(redirectInfo.outputFile, output);
             } catch {
-              console.error(
+              originalError(
                 `${redirectInfo.command}: ${redirectInfo.outputFile}: No such file or directory`
               );
               return false;
@@ -77,6 +84,7 @@ export class Shell {
             return false;
           } finally {
             console.log = originalLog;
+            console.error = originalError;
           }
         }
 

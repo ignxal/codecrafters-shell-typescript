@@ -5,10 +5,11 @@ export interface RedirectInfo {
   command: string;
   args: string[];
   outputFile: string;
+  fd: number; // 1 = stdout (>), 2 = stderr (2>)
 }
 
 export function hasRedirect(input: string): boolean {
-  return input.includes(">") || input.includes("1>");
+  return />/.test(input);
 }
 
 export async function parseRedirect(
@@ -17,18 +18,22 @@ export async function parseRedirect(
 ): Promise<RedirectInfo | null> {
   const fullCommand = [command, ...args].join(" ");
 
-  const truncateMatch = fullCommand.match(/^(.+?)\s*1?>\s*(.+)$/);
+  const truncateMatch = fullCommand.match(/^(.+?)\s+((1|2)?>)\s*(.+)$/);
 
   if (truncateMatch) {
-    const [cmdPart, filePart] = [
-      truncateMatch[1].trim(),
-      truncateMatch[2].trim(),
-    ];
+    const operator = truncateMatch[2].trim();
+    const filePart = truncateMatch[4];
+    const cmdPart = truncateMatch[1].trim();
+
     const parts = cmdPart.split(/\s+/);
+
+    const fd = operator.startsWith("2") ? 2 : 1;
+
     return {
       command: parts[0],
       args: parts.slice(1),
       outputFile: filePart,
+      fd,
     };
   }
 
@@ -40,15 +45,25 @@ export async function executeWithRedirect(
   executablePath: string
 ): Promise<number> {
   return new Promise((resolve) => {
-    const child = spawn(executablePath, redirectInfo.args, {
-      stdio: ["inherit", "pipe", "inherit"],
-    });
+    const stdio: Array<any> = [
+      "inherit",
+      redirectInfo.fd === 1 ? "pipe" : "inherit",
+      redirectInfo.fd === 2 ? "pipe" : "inherit",
+    ];
+
+    const child = spawn(executablePath, redirectInfo.args, { stdio });
 
     let output = "";
 
-    child.stdout.on("data", (data) => {
-      output += data.toString();
-    });
+    if (redirectInfo.fd === 1) {
+      child.stdout.on("data", (data) => {
+        output += data.toString();
+      });
+    } else if (redirectInfo.fd === 2) {
+      child.stderr.on("data", (data) => {
+        output += data.toString();
+      });
+    }
 
     child.on("close", async (code) => {
       try {
